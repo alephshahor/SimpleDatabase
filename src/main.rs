@@ -1,7 +1,14 @@
 use std::io::Write;
+
 const EXIT_CMD: &str = ".exit";
 
+enum MetaCmdStatus {
+        Success,
+        Exit,
+    }
+
 fn main() {
+
     let mut input = String::new();
 
     loop {
@@ -15,8 +22,11 @@ fn main() {
 
         let is_meta_cmd: bool = input.chars().nth(0).unwrap() == '.';
         if(is_meta_cmd) {
-            if process_meta_cmd(processed_input) {
-                break;
+            match process_meta_cmd(processed_input) {
+                MetaCmdStatus::Exit => {
+                    break;
+                },
+                _ => (),
             }
         }
 
@@ -24,13 +34,13 @@ fn main() {
     }
 }
 
-fn process_meta_cmd(cmd: &str) -> bool {
+fn process_meta_cmd(cmd: &str) -> MetaCmdStatus {
     match cmd {
             EXIT_CMD => { 
                 println!("Exiting the program");
-                return true;
+                return MetaCmdStatus::Exit;
             },
             _ => println!("Unknown command: {}", cmd)
     }
-    return false;
+    return MetaCmdStatus::Success;
 }
