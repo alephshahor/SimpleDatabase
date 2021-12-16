@@ -4,6 +4,7 @@ const EXIT_CMD: &str = ".exit";
 
 enum MetaCmdStatus {
         Success,
+        Unknown,
         Exit,
     }
 
@@ -40,7 +41,10 @@ fn process_meta_cmd(cmd: &str) -> MetaCmdStatus {
                 println!("Exiting the program");
                 return MetaCmdStatus::Exit;
             },
-            _ => println!("Unknown command: {}", cmd)
+            _ => { 
+                println!("Unknown command: {}", cmd);
+                return MetaCmdStatus::Unknown;
+            }
     }
     return MetaCmdStatus::Success;
 }
