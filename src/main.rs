@@ -1,7 +1,8 @@
 use std::io::Write;
+const EXIT_CMD: &str = ".exit";
+
 fn main() {
     let mut input = String::new();
-    let EXIT_CMD = "exit";
 
     loop {
         print!("db> ");
@@ -9,15 +10,27 @@ fn main() {
         std::io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
-        
-        // TODO: Handle defer error (if possible)
-        match &input.trim()[..] {
-            x if x == EXIT_CMD => { 
-                println!("Exiting the program");
+
+        let processed_input: &str = &input.trim()[..];
+
+        let is_meta_cmd: bool = input.chars().nth(0).unwrap() == '.';
+        if(is_meta_cmd) {
+            if process_meta_cmd(processed_input) {
                 break;
-            },
-            _ => println!("Unknown command: {}", input)
+            }
         }
+
         input.clear();
     }
+}
+
+fn process_meta_cmd(cmd: &str) -> bool {
+    match cmd {
+            EXIT_CMD => { 
+                println!("Exiting the program");
+                return true;
+            },
+            _ => println!("Unknown command: {}", cmd)
+    }
+    return false;
 }
