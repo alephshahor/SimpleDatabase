@@ -5,7 +5,6 @@ const INSERT_STMNT: &str = "insert";
 const SELECT_STMNT: &str = "select";
 
 enum MetaCmdStatus {
-        Success,
         Unknown,
         Exit,
 }
@@ -13,8 +12,15 @@ enum MetaCmdStatus {
 enum StatementStatus {
         Success,
         Unknown,
-        Exit,
 }
+
+/*
+struct Row {
+    id: i32,
+    username: &str,
+    email: &str,
+}
+*/
 
 fn main() {
 
@@ -28,18 +34,21 @@ fn main() {
             .expect("Failed to read line");
 
         let processed_input: &str = &input.trim()[..];
+        let tokens: Vec<&str> = processed_input.split(' ').collect();
 
-        let is_meta_cmd: bool = input.chars().nth(0).unwrap() == '.';
-        if(is_meta_cmd) {
-            match process_meta_cmd(processed_input) {
-                MetaCmdStatus::Exit => {
-                    break;
-                },
-                _ => (),
-            }
-        }else{
-            match process_statement(processed_input) {
-                _ => (),
+        if tokens.len() > 0 && processed_input != "" {
+            let is_meta_cmd: bool = tokens[0].chars().nth(0).unwrap() == '.';
+            if is_meta_cmd {
+                match process_meta_cmd(tokens) {
+                    MetaCmdStatus::Exit => {
+                        break;
+                    },
+                    _ => (),
+                }
+            }else{
+                match process_statement(tokens) {
+                    _ => (),
+                }
             }
         }
 
@@ -47,22 +56,23 @@ fn main() {
     }
 }
 
-fn process_meta_cmd(cmd: &str) -> MetaCmdStatus {
-    match cmd {
+fn process_meta_cmd(cmd: Vec<&str>) -> MetaCmdStatus {
+    // TODO: Handle out of bound index exception
+    match cmd[0] {
             EXIT_CMD => { 
                 println!("Exiting the program");
                 return MetaCmdStatus::Exit;
             },
             _ => { 
-                println!("Unknown command: {}", cmd);
+                println!("Unknown command: {}", cmd[0]);
                 return MetaCmdStatus::Unknown;
             }
     }
-    return MetaCmdStatus::Success;
 }
 
-fn process_statement(stmnt: &str) -> StatementStatus {
-    match stmnt {
+fn process_statement(stmnt: Vec<&str>) -> StatementStatus {
+    // TODO: Handle out of bound index exception
+    match stmnt[0] {
              INSERT_STMNT => { 
                 println!("Insert stmnt");
             },
@@ -70,7 +80,7 @@ fn process_statement(stmnt: &str) -> StatementStatus {
                 println!("Select stmnt");
             },
             _ => { 
-                println!("Unknown statement: {}", stmnt);
+                println!("Unknown statement: {}", stmnt[0]);
                 return StatementStatus::Unknown;
             }
     }
