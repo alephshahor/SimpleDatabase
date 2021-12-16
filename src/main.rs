@@ -1,12 +1,20 @@
 use std::io::Write;
 
 const EXIT_CMD: &str = ".exit";
+const INSERT_STMNT: &str = "insert";
+const SELECT_STMNT: &str = "select";
 
 enum MetaCmdStatus {
         Success,
         Unknown,
         Exit,
-    }
+}
+
+enum StatementStatus {
+        Success,
+        Unknown,
+        Exit,
+}
 
 fn main() {
 
@@ -29,6 +37,10 @@ fn main() {
                 },
                 _ => (),
             }
+        }else{
+            match process_statement(processed_input) {
+                _ => (),
+            }
         }
 
         input.clear();
@@ -48,3 +60,20 @@ fn process_meta_cmd(cmd: &str) -> MetaCmdStatus {
     }
     return MetaCmdStatus::Success;
 }
+
+fn process_statement(stmnt: &str) -> StatementStatus {
+    match stmnt {
+             INSERT_STMNT => { 
+                println!("Insert stmnt");
+            },
+             SELECT_STMNT => { 
+                println!("Select stmnt");
+            },
+            _ => { 
+                println!("Unknown statement: {}", stmnt);
+                return StatementStatus::Unknown;
+            }
+    }
+    return StatementStatus::Success;
+}
+
