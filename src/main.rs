@@ -7,7 +7,13 @@ fn main() {
         std::io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
-        println!("You introduced: {}", input);
+        match &input.trim()[..] {
+            "exit" => { 
+                println!("Exiting the program");
+                break;
+            },
+            _ => println!("Unknown command: {}", input)
+        }
         input.clear();
     }
 }
