@@ -12,15 +12,15 @@ enum MetaCmdStatus {
 enum StatementStatus {
         Success,
         Unknown,
+        Failure
 }
 
-/*
+#[derive(Debug)]
 struct Row {
     id: i32,
-    username: &str,
-    email: &str,
+    username: String,
+    email: String,
 }
-*/
 
 fn main() {
 
@@ -46,8 +46,12 @@ fn main() {
                     _ => (),
                 }
             }else{
-                match process_statement(tokens) {
-                    _ => (),
+                let (stmnt_status, row) = process_statement(tokens);
+                match stmnt_status {
+                    StatementStatus::Success => {
+                        println!("Row: {:?}", row);
+                    },
+                    _ => ()
                 }
             }
         }
@@ -70,20 +74,31 @@ fn process_meta_cmd(cmd: Vec<&str>) -> MetaCmdStatus {
     }
 }
 
-fn process_statement(stmnt: Vec<&str>) -> StatementStatus {
+fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<Row>) {
     // TODO: Handle out of bound index exception
     match stmnt[0] {
              INSERT_STMNT => { 
                 println!("Insert stmnt");
+                if stmnt.len() == 4 {
+                    return (StatementStatus::Success, Some(
+                            // TODO: Not introducing correct type panics
+                            Row { 
+                                id: stmnt[1].parse::<i32>().unwrap(), 
+                                username: String::from(stmnt[2]), 
+                                email: String::from(stmnt[3]) 
+                            })
+                        );
+                }
+                return (StatementStatus::Failure, None);
             },
              SELECT_STMNT => { 
                 println!("Select stmnt");
+                return (StatementStatus::Success, None);
             },
             _ => { 
                 println!("Unknown statement: {}", stmnt[0]);
-                return StatementStatus::Unknown;
+                return (StatementStatus::Unknown, None);
             }
     }
-    return StatementStatus::Success;
 }
 
