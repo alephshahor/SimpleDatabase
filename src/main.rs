@@ -2,6 +2,7 @@ mod structures;
 mod constants;
 mod structures_test;
 
+use std::fs::read;
 use std::io::Write;
 use crate::structures::TransactionStatus;
 
@@ -12,82 +13,122 @@ enum StatementStatus {
         Failure
 }
 
+struct Statement {
+    statement: String,
+    arguments: Option<Vec<String>>,
+    is_meta: bool
+}
+
+
+
 fn main() {
 
     let mut input = String::new();
+    let mut table:structures::Table = structures::create_table();
 
     loop {
         print!("db> ");
-        std::io::stdout().flush().unwrap();
-        std::io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
 
-        let processed_input: &str = &input.trim()[..];
-        let tokens: Vec<&str> = processed_input.split(' ').collect();
-
-        if tokens.len() > 0 && processed_input != "" {
-            let is_meta_cmd: bool = tokens[0].chars().nth(0).unwrap() == '.';
-            if is_meta_cmd {
-                match process_meta_cmd(tokens) {
-                    StatementStatus::Exit => {
-                        break;
-                    },
-                    _ => (),
+        let input_stmnt = read_input(&mut input);
+        match input_stmnt {
+            Some(input_stmnt) => {
+                if input_stmnt.is_meta {
+                    match process_meta_stmnt(input_stmnt) {
+                        StatementStatus::Exit => {
+                            break;
+                        },
+                        _ => (),
+                    }
+                }else{
+                    let _ = process_stmnt(&mut table, input_stmnt);
                 }
-            }else{
-                let (stmnt_status, row) = process_statement(tokens);
-                match stmnt_status {
-                    StatementStatus::Success => {
-                        println!("Row: {:?}", row);
-                    },
-                    _ => ()
-                }
-            }
+            },
+            None => {}
         }
 
         input.clear();
     }
 }
 
-fn process_meta_cmd(cmd: Vec<&str>) -> StatementStatus {
+fn read_input(input: &mut String) -> Option<Statement> {
+    std::io::stdout().flush().unwrap();
+    std::io::stdin()
+        .read_line(input)
+        .expect("Failed to read line");
+
+    let processed_input: &str = &input.trim()[..];
+    let tokens: Vec<&str> = processed_input.split(' ').collect();
+    return process_input_tokens(tokens);
+}
+
+fn process_input_tokens(tokens: Vec<&str>) -> Option<Statement> {
+    if tokens.len() <= 1 {
+        if tokens[0] == "" {
+            return None
+        }
+        return Some(Statement {
+            statement: String::from(tokens[0]),
+            arguments: None,
+            is_meta: tokens[0].chars().nth(0).unwrap() == '.'
+        });
+    }
+    return Some(Statement {
+        statement: String::from(tokens[0]),
+        arguments: Some(tokens[1..].iter().map(|&x| String::from(x)).collect()),
+        is_meta: tokens[0].chars().nth(0).unwrap() == '.'
+    })
+}
+
+fn process_meta_stmnt(stmnt: Statement) -> StatementStatus {
     // TODO: Handle out of bound index exception
-    match cmd[0] {
+    match stmnt.statement.as_str() {
             constants::EXIT_CMD => {
                 println!("Exiting the program");
                 return StatementStatus::Exit;
             },
             _ => { 
-                println!("Unknown command: {}", cmd[0]);
+                println!("Unknown meta statement: {}", stmnt.statement);
                 return StatementStatus::Unknown;
             }
     }
 }
 
-fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<structures::Row>) {
+fn process_stmnt(table:&mut structures::Table, stmnt: Statement) -> StatementStatus {
     // TODO: Handle out of bound index exception
-    match stmnt[0] {
+    match stmnt.statement.as_str() {
              constants::INSERT_STMNT => {
                 println!("Insert stmnt");
-                if stmnt.len() == 4 {
-                    return (StatementStatus::Success, Some(
-                        // TODO: Not introducing correct type panics
-                            structures::Row {
-                                id: stmnt[1].parse::<i32>().unwrap(), 
-                                username: String::from(stmnt[2]), 
-                                email: String::from(stmnt[3]) 
-                            })
-                        );
-                }
-                return (StatementStatus::Failure, None);
+                return process_insert_stmnt(table, stmnt);
             },
              constants::SELECT_STMNT => {
                 println!("Select stmnt");
-                return (StatementStatus::Success, None);
+                return StatementStatus::Success
             },
             _ => { 
-                println!("Unknown statement: {}", stmnt[0]);
-                return (StatementStatus::Unknown, None);
+                println!("Unknown statement: {}", stmnt.statement);
+                return StatementStatus::Unknown
             }
     }
+}
+
+
+fn process_insert_stmnt(table:&mut structures::Table, stmnt: Statement) -> StatementStatus {
+    let stmnt_arguments = stmnt.arguments;
+    match stmnt_arguments {
+        Some(stmnt_arguments) => {
+            if stmnt_arguments.len() != 4 {
+                return StatementStatus::Failure;
+            }
+            match table.insert_row(structures::Row {
+                id: stmnt_arguments[0].parse().unwrap(),
+                username: stmnt_arguments[1].clone(),
+                email: stmnt_arguments[2].clone()
+            }) {
+                structures::TransactionStatus::Success => { return StatementStatus::Success; },
+                _  => { return StatementStatus::Failure }
+            };
+        },
+        None => { return StatementStatus::Failure; }
+    }
+
 }
