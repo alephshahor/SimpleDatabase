@@ -41,4 +41,21 @@ mod tests {
         assert_eq!(status, structures::TransactionStatus::Full);
     }
 
+    #[test]
+    fn table_select_row() {
+        let mut t = structures::create_table();
+        let status = t.insert_row(
+            create_row((0) as i32)
+        );
+        let mut r = t.select_row(0);
+        match r {
+            Some(r) => {
+                assert_eq!(r.id, 0);
+                assert_eq!(r.username, "John");
+                assert_eq!(r.email, "John@email.com");
+            },
+            None => ()
+        }
+        r = t.select_row(1);
+    }
 }

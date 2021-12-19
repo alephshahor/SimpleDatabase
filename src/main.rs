@@ -102,7 +102,7 @@ fn process_stmnt(table:&mut structures::Table, stmnt: Statement) -> StatementSta
             },
              constants::SELECT_STMNT => {
                 println!("Select stmnt");
-                return StatementStatus::Success
+                return process_select_stmnt(table, stmnt);
             },
             _ => { 
                 println!("Unknown statement: {}", stmnt.statement);
@@ -116,7 +116,7 @@ fn process_insert_stmnt(table:&mut structures::Table, stmnt: Statement) -> State
     let stmnt_arguments = stmnt.arguments;
     match stmnt_arguments {
         Some(stmnt_arguments) => {
-            if stmnt_arguments.len() != 4 {
+            if stmnt_arguments.len() != 3 {
                 return StatementStatus::Failure;
             }
             match table.insert_row(structures::Row {
@@ -130,5 +130,19 @@ fn process_insert_stmnt(table:&mut structures::Table, stmnt: Statement) -> State
         },
         None => { return StatementStatus::Failure; }
     }
+}
 
+fn process_select_stmnt(table:&mut structures::Table, stmnt: Statement) -> StatementStatus {
+    let stmnt_arguments = stmnt.arguments;
+    match stmnt_arguments {
+        Some(stmnt_arguments) => {
+            if stmnt_arguments.len() != 1 {
+                return StatementStatus::Failure;
+            }
+            let r:Option<&structures::Row> = table.select_row(stmnt_arguments[0].parse().unwrap());
+            println!("Row {:?} : {:?}", stmnt_arguments[0], r);
+            return StatementStatus::Success;
+        },
+        None => { return StatementStatus::Failure; }
+    }
 }

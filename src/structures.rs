@@ -51,6 +51,16 @@
             return TransactionStatus::Success
         }
 
+        pub(crate) fn select_row(&self, n: usize) -> Option<&Row> {
+            let n_page = n / constants::N_ROWS;
+            let n_row = n % constants::N_ROWS;
+            // You've to check the current idx of the page
+            if self.pages[n_page].current_row_idx <= n_row {
+                return None
+            }
+            return Some(&self.pages[n_page].rows[n_row]);
+        }
+
         fn table_is_full(&self) -> bool {
             return self.current_page_idx == constants::N_PAGES - 1 && self.page_is_full()
         }
