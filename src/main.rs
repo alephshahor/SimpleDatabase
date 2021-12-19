@@ -1,3 +1,7 @@
+mod structures;
+mod constants;
+mod structures_test;
+
 use std::io::Write;
 
 const EXIT_CMD: &str = ".exit";
@@ -13,13 +17,6 @@ enum StatementStatus {
         Success,
         Unknown,
         Failure
-}
-
-#[derive(Debug)]
-struct Row {
-    id: i32,
-    username: String,
-    email: String,
 }
 
 fn main() {
@@ -74,15 +71,15 @@ fn process_meta_cmd(cmd: Vec<&str>) -> MetaCmdStatus {
     }
 }
 
-fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<Row>) {
+fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<structures::Row>) {
     // TODO: Handle out of bound index exception
     match stmnt[0] {
              INSERT_STMNT => { 
                 println!("Insert stmnt");
                 if stmnt.len() == 4 {
                     return (StatementStatus::Success, Some(
-                            // TODO: Not introducing correct type panics
-                            Row { 
+                        // TODO: Not introducing correct type panics
+                            structures::Row {
                                 id: stmnt[1].parse::<i32>().unwrap(), 
                                 username: String::from(stmnt[2]), 
                                 email: String::from(stmnt[3]) 
