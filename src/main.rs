@@ -3,19 +3,12 @@ mod constants;
 mod structures_test;
 
 use std::io::Write;
-
-const EXIT_CMD: &str = ".exit";
-const INSERT_STMNT: &str = "insert";
-const SELECT_STMNT: &str = "select";
-
-enum MetaCmdStatus {
-        Unknown,
-        Exit,
-}
+use crate::structures::TransactionStatus;
 
 enum StatementStatus {
         Success,
         Unknown,
+        Exit,
         Failure
 }
 
@@ -37,7 +30,7 @@ fn main() {
             let is_meta_cmd: bool = tokens[0].chars().nth(0).unwrap() == '.';
             if is_meta_cmd {
                 match process_meta_cmd(tokens) {
-                    MetaCmdStatus::Exit => {
+                    StatementStatus::Exit => {
                         break;
                     },
                     _ => (),
@@ -57,16 +50,16 @@ fn main() {
     }
 }
 
-fn process_meta_cmd(cmd: Vec<&str>) -> MetaCmdStatus {
+fn process_meta_cmd(cmd: Vec<&str>) -> StatementStatus {
     // TODO: Handle out of bound index exception
     match cmd[0] {
-            EXIT_CMD => { 
+            constants::EXIT_CMD => {
                 println!("Exiting the program");
-                return MetaCmdStatus::Exit;
+                return StatementStatus::Exit;
             },
             _ => { 
                 println!("Unknown command: {}", cmd[0]);
-                return MetaCmdStatus::Unknown;
+                return StatementStatus::Unknown;
             }
     }
 }
@@ -74,7 +67,7 @@ fn process_meta_cmd(cmd: Vec<&str>) -> MetaCmdStatus {
 fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<structures::Row>) {
     // TODO: Handle out of bound index exception
     match stmnt[0] {
-             INSERT_STMNT => { 
+             constants::INSERT_STMNT => {
                 println!("Insert stmnt");
                 if stmnt.len() == 4 {
                     return (StatementStatus::Success, Some(
@@ -88,7 +81,7 @@ fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<structures::R
                 }
                 return (StatementStatus::Failure, None);
             },
-             SELECT_STMNT => { 
+             constants::SELECT_STMNT => {
                 println!("Select stmnt");
                 return (StatementStatus::Success, None);
             },
@@ -98,4 +91,3 @@ fn process_statement(stmnt: Vec<&str>) -> (StatementStatus, Option<structures::R
             }
     }
 }
-
